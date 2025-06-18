@@ -1,0 +1,35 @@
+{
+  "id": "wKxKaXEwlzz781zO",
+  "messages": [
+    {
+      "id": "6rArXUX1xU21c4PJ",
+      "createdAt": "2025-06-17T04:09:17.948Z",
+      "role": "user",
+      "content": "hai",
+      "parts": [
+        {
+          "type": "text",
+          "text": "hai"
+        }
+      ]
+    },
+    {
+      "role": "assistant",
+      "id": "msg-Y7FYUD1gJ5cagHNmgmPoXf1C",
+      "createdAt": "2025-06-17T04:09:19.433Z",
+      "content": "Hello! How can I assist you today?",
+      "toolInvocations": [],
+      "parts": [
+        {
+          "type": "step-start"
+        },
+        {
+          "type": "text",
+          "text": "Hello! How can I assist you today?"
+        }
+      ]
+    }
+  ],
+  "createdAt": "2025-06-17T04:08:46.498Z",
+  "updatedAt": "2025-06-17T04:09:19.434Z"
+}
