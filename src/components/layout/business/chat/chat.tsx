@@ -1,54 +1,60 @@
 "use client";
 
-import { Message, useChat } from "@ai-sdk/react";
-import { useEffect, useRef, useState } from "react";
-import { Loader2, Send, ArrowLeft } from "lucide-react";
+import { useChat, Message } from "@ai-sdk/react";
+import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
+import { ArrowLeft, Loader2, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 
 export default function Chat({
   id,
   initialMessages,
 }: {
-  id?: string | undefined;
+  id?: string;
   initialMessages?: Message[];
-} = {}) {
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+}) {
+  const {
+    input,
+    handleInputChange,
+    handleSubmit,
+    messages,
+    isLoading,
+    error,
+    append,
+  } = useChat({
+    id,
+    initialMessages,
+    sendExtraMessageFields: true,
+    experimental_prepareRequestBody({ messages, id }) {
+      return { message: messages[messages.length - 1], id };
+    },
+  });
+
+  const searchParams = useSearchParams();
   const router = useRouter();
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const [localError, setLocalError] = useState<string | null>(null);
 
-  const { input, handleInputChange, handleSubmit, messages, isLoading, error } =
-    useChat({
-      id,
-      initialMessages,
-      sendExtraMessageFields: true,
-      experimental_prepareRequestBody({ messages, id }) {
-        return { message: messages[messages.length - 1], id };
-      },
-      onError: (error) => {
-        console.error("Chat error:", error);
-        setLocalError(error.message);
-      },
-    });
+  // Trigger streaming AI response if opened with ?initial=1
+  useEffect(() => {
+    const shouldStart = searchParams.get("initial") === "1";
+    if (shouldStart && initialMessages?.length) {
+      const lastUserMsg = initialMessages.at(-1);
+      if (lastUserMsg?.role === "user") {
+        append({
+          role: "assistant",
+          content: "",
+        });
+      }
+    }
+  }, []);
 
-  const scrollToBottom = () => {
+  useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
   }, [messages]);
-
-  useEffect(() => {
-    console.log("Chat component mounted with ID:", id);
-    console.log("Initial messages:", initialMessages);
-  }, [id, initialMessages]);
-
-  const handleBack = () => {
-    router.push("/organizations/chat");
-  };
 
   const displayError = error || localError;
 
@@ -59,21 +65,25 @@ export default function Chat({
         <Button
           variant="ghost"
           size="sm"
-          onClick={handleBack}
+          onClick={() => router.push("/organizations/chat")}
           className="flex items-center gap-2"
         >
           <ArrowLeft className="h-4 w-4" />
           Back to Chats
         </Button>
         <h1 className="text-lg font-semibold">Chat Conversation</h1>
-        {id && <span className="text-sm text-muted-foreground">ID: {id}</span>}
+        {id && (
+          <span className="text-sm text-muted-foreground ml-auto">
+            ID: {id}
+          </span>
+        )}
       </div>
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
-        {messages.map((m) => (
+        {messages.map((m, idx) => (
           <div
-            key={m.id}
+            key={m.id || m.content + m.role + idx}
             className={cn(
               "flex w-full",
               m.role === "user" ? "justify-end" : "justify-start"
@@ -113,7 +123,7 @@ export default function Chat({
         </div>
       )}
 
-      {/* Input Form */}
+      {/* Input */}
       <form onSubmit={handleSubmit} className="p-4 border-t">
         <div className="flex gap-2">
           <Textarea

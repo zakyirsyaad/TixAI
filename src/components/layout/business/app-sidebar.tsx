@@ -60,29 +60,6 @@ const items = [
   },
 ];
 
-const Conversations = [
-  {
-    title: "Membuat masakan padang",
-    url: "home",
-  },
-  {
-    title: "Visitor",
-    url: "#",
-  },
-  {
-    title: "Revenue",
-    url: "#",
-  },
-  {
-    title: "Rating",
-    url: "#",
-  },
-  {
-    title: "Settings",
-    url: "settings",
-  },
-];
-
 export async function AppSidebar() {
   const supabase = await createClient();
   const {
@@ -94,7 +71,11 @@ export async function AppSidebar() {
     .select("*")
     .eq("user_id", user?.id);
 
-  console.log(organizations);
+  const { data: chats, error: isErrorChats } = await supabase
+    .from("chats")
+    .select("id, title")
+    .eq("user_id", user?.id)
+    .order("created_at", { ascending: false });
 
   return (
     <Sidebar collapsible="offcanvas">
@@ -121,15 +102,23 @@ export async function AppSidebar() {
           <SidebarGroupLabel>Conversations</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {Conversations.map((item) => (
-                <SidebarMenuItem key={item.title}>
+              {chats?.map((chat) => (
+                <SidebarMenuItem key={chat.id}>
                   <SidebarMenuButton asChild>
-                    <a href={item.url}>
-                      <span>{item.title}</span>
+                    <a href={`/organizations/chat/${chat.id}`}>
+                      <span>{chat.title || "Untitled Chat"}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+
+              {chats?.length === 0 && (
+                <SidebarMenuItem>
+                  <span className="text-muted-foreground text-sm">
+                    No conversations yet
+                  </span>
+                </SidebarMenuItem>
+              )}
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>

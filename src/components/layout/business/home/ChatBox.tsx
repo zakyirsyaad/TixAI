@@ -3,9 +3,10 @@ import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
-import { createChat, saveMessages } from "@/tools/chat-store";
+import { createChat } from "@/tools/chat-store";
 import { useRouter } from "next/navigation";
-import { generateId } from "ai";
+import useGetUser from "@/hooks/getUser";
+import { useCompletion } from "@ai-sdk/react";
 
 export default function ChatBox() {
   const [message, setMessage] = useState("");
@@ -14,44 +15,32 @@ export default function ChatBox() {
   const MAX_LENGTH = 2000;
   const router = useRouter();
 
+  const { user } = useGetUser();
+
   async function createNewChat() {
     if (!message.trim() || isCreating) return;
+    if (!user) return;
 
     try {
       setIsCreating(true);
       setError(null);
 
-      // Create a new chat with the message as title
-      const chatId = await createChat(message.trim().substring(0, 50));
+      const chatId = await createChat({
+        userId: user.id,
+        message,
+      });
 
-      if (!chatId) {
-        throw new Error("Failed to create chat - no ID returned");
-      }
-
-      // Save the initial user message
-      await saveMessages(chatId, [
-        {
-          id: generateId(),
-          role: "user",
-          content: message.trim(),
-        },
-      ]);
-
-      // Navigate to the chat
-      router.push(`/organizations/chat/${chatId}`);
+      // Pass `initialMessage` via query param (or use Supabase)
+      router.push(`/organizations/chat/${chatId}?initial=1`);
     } catch (err) {
       console.error("Chat creation error:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Failed to create chat. Please try again."
-      );
+      setError(err instanceof Error ? err.message : "Failed to create chat.");
     } finally {
       setIsCreating(false);
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyPress = async (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       createNewChat();

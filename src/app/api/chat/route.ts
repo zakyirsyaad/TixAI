@@ -1,7 +1,7 @@
+import { loadChat, saveChat } from "@/tools/chat-store";
 import { createClient } from "@/utils/supabase/server";
 import { openai } from "@ai-sdk/openai";
-import { appendResponseMessages, appendClientMessage, streamText } from "ai";
-import { saveMessages } from "@/tools/chat-store";
+import { appendClientMessage, appendResponseMessages, streamText } from "ai";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -9,10 +9,17 @@ export const maxDuration = 30;
 export async function POST(req: Request) {
   try {
     // get the last message from the client
-    const { message, id } = await req.json();
+    const { messages, id } = await req.json();
 
-    if (!message || !id) {
-      return new Response("Missing message or chat ID", { status: 400 });
+    if (!messages || !Array.isArray(messages) || !id) {
+      return new Response("Missing messages or chat ID", { status: 400 });
+    }
+
+    const previousMessages = messages.slice(0, -1);
+    const newMessage = messages.at(-1);
+
+    if (!newMessage) {
+      return new Response("No new message provided", { status: 400 });
     }
 
     const supabase = await createClient();
@@ -24,31 +31,6 @@ export async function POST(req: Request) {
     if (!user) {
       return new Response("User not authenticated", { status: 401 });
     }
-
-    // Load previous messages
-    const { data: messageRows, error: messagesError } = await supabase
-      .from("messages")
-      .select("*")
-      .eq("chat_id", id)
-      .order("created_at", { ascending: true });
-
-    if (messagesError) {
-      console.error("Error loading messages:", messagesError);
-      return new Response("Error loading chat messages", { status: 500 });
-    }
-
-    // Convert to AI SDK format
-    const previousMessages = (messageRows || []).map((row) => ({
-      id: row.id,
-      role: row.role as "user" | "assistant" | "system",
-      content: row.content,
-    }));
-
-    // append the new message to the previous messages
-    const messages = appendClientMessage({
-      messages: previousMessages,
-      message,
-    });
 
     // Get organization data
     const { data: organizations, error } = await supabase
@@ -91,24 +73,22 @@ export async function POST(req: Request) {
   )}
   `;
 
+    const allMessages = appendClientMessage({
+      messages: previousMessages,
+      message: newMessage,
+    });
     const result = streamText({
       model: openai("gpt-4"),
       system,
-      messages,
-      maxSteps: 5,
+      messages: allMessages,
       async onFinish({ response }) {
-        try {
-          // Save all messages including the response
-          await saveMessages(
-            id,
-            appendResponseMessages({
-              messages,
-              responseMessages: response.messages,
-            })
-          );
-        } catch (saveError) {
-          console.error("Error saving chat:", saveError);
-        }
+        await saveChat({
+          id,
+          messages: appendResponseMessages({
+            messages: allMessages,
+            responseMessages: response.messages,
+          }),
+        });
       },
     });
 
