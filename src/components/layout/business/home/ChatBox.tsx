@@ -6,7 +6,6 @@ import { ArrowRight } from "lucide-react";
 import { createChat } from "@/tools/chat-store";
 import { useRouter } from "next/navigation";
 import useGetUser from "@/hooks/getUser";
-import { useCompletion } from "@ai-sdk/react";
 
 export default function ChatBox() {
   const [message, setMessage] = useState("");

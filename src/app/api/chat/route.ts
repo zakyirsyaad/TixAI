@@ -1,4 +1,4 @@
-import { loadChat, saveChat } from "@/tools/chat-store";
+import { saveChat } from "@/tools/chat-store";
 import { createClient } from "@/utils/supabase/server";
 import { openai } from "@ai-sdk/openai";
 import { appendClientMessage, appendResponseMessages, streamText } from "ai";
