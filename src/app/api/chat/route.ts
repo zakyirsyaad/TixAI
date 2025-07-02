@@ -2,6 +2,7 @@ import { saveChat } from "@/tools/chat-store";
 import { createClient } from "@/utils/supabase/server";
 import { openai } from "@ai-sdk/openai";
 import { appendClientMessage, appendResponseMessages, streamText } from "ai";
+import { chartstool } from "@/tools/tools";
 
 // Allow streaming responses up to 30 seconds
 export const maxDuration = 30;
@@ -104,7 +105,12 @@ export async function POST(req: Request) {
     const result = streamText({
       model: openai("gpt-4"),
       system,
+      maxSteps: 5,
       messages: allMessages,
+      tools: {
+        generateChart: chartstool,
+      },
+      toolCallStreaming: true,
       async onFinish({ response }) {
         await saveChat({
           id,
