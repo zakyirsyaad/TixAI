@@ -131,7 +131,7 @@ export async function AppSidebar() {
                 <SidebarMenuButton>
                   <User2 />
                   <div>
-                    <p>{isErorrOrgz ? user?.email : organizations?.[0].name}</p>
+                    <p>{isErorrOrgz ? user?.email : organizations?.[0]?.name}</p>
                     <p className="text-xs text-muted-foreground">
                       {user?.email}
                     </p>

@@ -66,7 +66,6 @@ export default function OrgzProfile() {
   if (loading) {
     return <div>Loading...</div>;
   }
-  console.log(orgz?.[0].name);
   return (
     <Card>
       <CardHeader>
