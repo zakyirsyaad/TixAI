@@ -45,14 +45,20 @@ export default function Chat({
   id?: string;
   initialMessages?: Message[];
 }) {
-  const { input, handleInputChange, handleSubmit, messages, append } = useChat({
-    id,
-    initialMessages,
-    sendExtraMessageFields: true,
-  });
+  const { input, handleInputChange, handleSubmit, messages, append, setInput } =
+    useChat({
+      id,
+      initialMessages,
+      sendExtraMessageFields: true,
+    });
   const { user } = useGetUser();
   const searchParams = useSearchParams();
   const [autoTriggered, setAutoTriggered] = useState(false);
+
+  // Handler for suggestion click
+  const handleSuggestionClick = (suggestion: string) => {
+    setInput(suggestion);
+  };
 
   // Jika halaman dipanggil dari awal (setelah chat baru dibuat)
   useEffect(() => {
@@ -128,45 +134,48 @@ export default function Chat({
         </AIConversationContent>
         <AIConversationScrollButton />
       </AIConversation>
-
-      <AISuggestions>
-        {suggestions.map((suggestion) => (
-          <AISuggestion
-            key={suggestion}
-            // onClick={handleSuggestionClick}
-            suggestion={suggestion}
-          />
-        ))}
-      </AISuggestions>
-      <AIInput onSubmit={handleSubmit}>
-        <AIInputTextarea value={input} onChange={handleInputChange} />
-        <AIInputToolbar>
-          <AIInputTools>
-            <AIInputButton>
-              <PlusIcon size={16} />
-            </AIInputButton>
-            <AIInputButton>
-              <MicIcon size={16} />
-            </AIInputButton>
-            <AIInputButton>
-              <GlobeIcon size={16} />
-              <span>Search</span>
-            </AIInputButton>
-          </AIInputTools>
-          <AIInputSubmit disabled={!input} />
-        </AIInputToolbar>
-      </AIInput>
+      <div className="space-y-5">
+        <AISuggestions>
+          {suggestions.map((suggestion) => (
+            <AISuggestion
+              key={suggestion}
+              onClick={handleSuggestionClick}
+              suggestion={suggestion}
+            />
+          ))}
+        </AISuggestions>
+        <AIInput onSubmit={handleSubmit}>
+          <AIInputTextarea value={input} onChange={handleInputChange} />
+          <AIInputToolbar>
+            <AIInputTools>
+              <AIInputButton>
+                <PlusIcon size={16} />
+              </AIInputButton>
+              <AIInputButton>
+                <MicIcon size={16} />
+              </AIInputButton>
+              <AIInputButton>
+                <GlobeIcon size={16} />
+                <span>Search</span>
+              </AIInputButton>
+            </AIInputTools>
+            <AIInputSubmit disabled={!input} />
+          </AIInputToolbar>
+        </AIInput>
+      </div>
     </div>
   );
 }
 
 const suggestions = [
-  "What are the latest trends in AI?",
-  "How does machine learning work?",
-  "Explain quantum computing",
-  "Best practices for React development",
-  "Tell me about TypeScript benefits",
-  "How to optimize database queries?",
-  "What is the difference between SQL and NoSQL?",
-  "Explain cloud computing basics",
+  "Tampilkan statistik penjualan tiket event terakhir",
+  "Prediksi jumlah peserta untuk event berikutnya",
+  "Bagaimana cara meningkatkan engagement peserta?",
+  "Buat chart pendapatan bulanan tahun ini",
+  "Apa feedback terbanyak dari peserta event?",
+  "Rekomendasikan strategi marketing untuk event esports",
+  "Bandingkan performa dua event terakhir",
+  "Analisis pengeluaran terbesar pada event kemarin",
+  "Bagaimana tren pertumbuhan penonton di event esports saya?",
+  "Saran optimasi biaya venue dan operasional",
 ];

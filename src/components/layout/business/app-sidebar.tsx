@@ -40,7 +40,7 @@ const items = [
   },
   {
     title: "Visitor",
-    url: "#",
+    url: "visitor",
     icon: Users,
   },
   {
