@@ -84,6 +84,7 @@ export async function POST(req: Request) {
   - Explaining your analyses and recommendations clearly, logically, and based on the available data.
   - Always use professional yet easy-to-understand language.
   - Never go off-topic from event organizing and data analysis.
+  -  If you return a chart as an image or markdown image, it will be ignored and not shown to the user. You MUST use the generateChart tool for all chart visualizations, or say you cannot generate the chart if you cannot use the tool.
   - If the available data is insufficient, politely ask the user for additional necessary information.
 
   Additionally, the user is interested in esports-related data. You are expected to:
@@ -103,7 +104,7 @@ export async function POST(req: Request) {
       message: newMessage,
     });
     const result = streamText({
-      model: openai("gpt-4"),
+      model: openai("gpt-4o-mini"),
       system,
       maxSteps: 5,
       messages: allMessages,

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Message, useChat } from "@ai-sdk/react";
 import { useSearchParams } from "next/navigation";
 
@@ -36,6 +36,7 @@ import {
   AISuggestion,
   AISuggestions,
 } from "@/components/ui/kibo-ui/ai/suggestion";
+import useGetUser from "@/hooks/getUser";
 
 export default function Chat({
   id,
@@ -49,23 +50,31 @@ export default function Chat({
     initialMessages,
     sendExtraMessageFields: true,
   });
-
+  const { user } = useGetUser();
   const searchParams = useSearchParams();
+  const [autoTriggered, setAutoTriggered] = useState(false);
 
   // Jika halaman dipanggil dari awal (setelah chat baru dibuat)
   useEffect(() => {
+    if (!user || autoTriggered) return; // Jangan trigger jika user belum siap atau sudah pernah trigger
     const shouldStart = searchParams.get("initial") === "1";
     if (shouldStart && initialMessages?.length) {
       const lastUserMsg = initialMessages.at(-1);
-      if (lastUserMsg?.role === "user") {
+      // Cek jika pesan terakhir user dan belum ada balasan assistant
+      const hasAssistantReply = initialMessages.some(
+        (msg, idx) =>
+          msg.role === "assistant" && idx > initialMessages.length - 2
+      );
+      if (lastUserMsg?.role === "user" && !hasAssistantReply) {
         append({
           role: "assistant",
           content: "",
-        }); // trigger AI response via useChat
+        });
+        setAutoTriggered(true); // Supaya tidak retrigger
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [user, autoTriggered]);
 
   return (
     <div>

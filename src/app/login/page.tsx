@@ -18,7 +18,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createClient } from "@/utils/supabase/client";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Loader2, Github } from "lucide-react";
+import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 
 type FormValues = {
@@ -55,7 +55,7 @@ export default function Page() {
           </TabsContent>
 
           <TabsContent value="login">
-            <AuthCard title="Welcome Back">
+            <AuthCard title="Welcome Back TixAI!">
               <LoginForm />
             </AuthCard>
           </TabsContent>
@@ -207,7 +207,7 @@ function LoginForm() {
         {loading ? <Loader2 className="animate-spin h-5 w-5" /> : "Login"}
       </Button>
 
-      <div className="mt-4 flex justify-center gap-4">
+      {/* <div className="mt-4 flex justify-center gap-4">
         <Button
           variant="outline"
           onClick={() => supabase.auth.signInWithOAuth({ provider: "google" })}
@@ -220,7 +220,7 @@ function LoginForm() {
         >
           <Github className="mr-2 h-4 w-4" /> GitHub
         </Button>
-      </div>
+      </div> */}
     </form>
   );
 }

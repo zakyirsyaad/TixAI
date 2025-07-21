@@ -1,5 +1,6 @@
 import { tool as createTool } from "ai";
 import { z } from "zod";
+import { createClient } from "@/utils/supabase/client";
 
 export const chartstool = createTool({
   description:
@@ -132,6 +133,59 @@ export const chartstool = createTool({
   },
 });
 
+// Visitor Tool
+export const visitorTool = createTool({
+  description: "Simpan data visitor ke tabel visitor Supabase.",
+  parameters: z.object({
+    user_id: z.string().describe("ID user (uuid)"),
+    page_visited: z.string().describe("Halaman yang dikunjungi"),
+  }),
+  execute: async ({ user_id, page_visited }) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("visitor")
+      .insert([{ user_id, page_visited }]);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
+});
+
+// Revenue Tool
+export const revenueTool = createTool({
+  description: "Simpan data revenue ke tabel revenue Supabase.",
+  parameters: z.object({
+    user_id: z.string().describe("ID user (uuid)"),
+    amount: z.number().describe("Jumlah revenue"),
+    source: z.string().describe("Sumber revenue"),
+  }),
+  execute: async ({ user_id, amount, source }) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("revenue")
+      .insert([{ user_id, amount, source }]);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
+});
+
+// Rating Tool
+export const ratingTool = createTool({
+  description: "Simpan data rating ke tabel rating Supabase.",
+  parameters: z.object({
+    user_id: z.string().describe("ID user (uuid)"),
+    rating: z.number().min(1).max(5).describe("Nilai rating 1-5"),
+    comment: z.string().optional().describe("Komentar (opsional)"),
+  }),
+  execute: async ({ user_id, rating, comment }) => {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from("rating")
+      .insert([{ user_id, rating, comment }]);
+    if (error) return { success: false, error: error.message };
+    return { success: true };
+  },
+});
+
 // export const balanceTool = createTool({
 //   description: "Request the account balance of the user with formated balance",
 //   parameters: z.object({
@@ -163,7 +217,8 @@ export const chartstool = createTool({
 //   },
 // });
 
-// export const tools = {
-//   displayBalance: balanceTool,
-//   sendTransaction: sendTransactionTool,
-// };
+export const tools = {
+  visitor: visitorTool,
+  revenue: revenueTool,
+  rating: ratingTool,
+};
